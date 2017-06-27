@@ -5,7 +5,7 @@ require "shrine/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "shrine-google_drive_storage"
-  spec.version       = Shrine::VERSION
+  spec.version       = Shrine::GoogleDriveStorage::VERSION
   spec.authors       = ["Scott Near"]
   spec.email         = ["scott.a.near@gmail.com"]
 
@@ -23,11 +23,12 @@ Gem::Specification.new do |spec|
   #     "public gem pushes."
   # end
 
+  spec.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
   end
-  spec.bindir        = "exe"
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'shrine', '~> 2.6', '>= 2.6.1'
@@ -37,4 +38,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "dotenv"
+  spec.add_development_dependency "activerecord', '~> 4.2', '>= 4.2.0"
+  spec.add_development_dependency "railties', '~> 4.2', '>= 4.2.0"
 end
