@@ -38,6 +38,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "dotenv"
-  spec.add_development_dependency "activerecord', '~> 4.2', '>= 4.2.0"
-  spec.add_development_dependency "railties', '~> 4.2', '>= 4.2.0"
+  spec.add_development_dependency "activerecord", "~> 4.2", ">= 4.2.0"
+  spec.add_development_dependency "railties", "~> 4.2", ">= 4.2.0"
 end
