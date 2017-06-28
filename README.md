@@ -1,8 +1,6 @@
-# Shrine::GoogleDriveStorage
+# Shrine::Storage::GoogleDriveStorage
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/shrine/google_drive_storage`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-Provides [Google Drive Storage] storage for [Shrine].
+Provides [Google Drive Storage] for [Shrine].
 
 ## Installation
 
@@ -101,8 +99,11 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/veryne
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+[MIT License](http://opensource.org/licenses/MIT).
 
 ## Code of Conduct
 
 Everyone interacting in the Shrine::GoogleDriveStorage project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/verynear/shrine-google_drive_storage/blob/master/CODE_OF_CONDUCT.md).
+
+[Google Drive Storage]: https://drive.google.com/drive/
+[Shrine]: https://github.com/janko-m/shrine
