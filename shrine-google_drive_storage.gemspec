@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Scott Near"]
   spec.email         = ["scott.a.near@gmail.com"]
 
-  spec.summary       = "Provides Google Cloud Storage storage for Shrine."
-  spec.description   = "Provides Google Drive Storage storage for Shrine."
+  spec.summary       = "Provides Google Drive Storage for Shrine."
+  spec.description   = "Provides Google Drive Storage for Shrine."
   spec.homepage      = "https://github.com/verynear/shrine-google_drive_storage"
   spec.license       = "MIT"
 

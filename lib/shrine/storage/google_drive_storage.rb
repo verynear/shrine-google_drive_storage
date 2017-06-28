@@ -45,28 +45,20 @@ class Shrine
 
       def upload(io, id, shrine_metadata: {}, **_options)
         # uploads `io` to the location `id`
+	      shrine_metadata = {
+	        name: id,
+	        description: 'shrine file on google drive',
+	        mimeType: mime_type,
+	        parents: folder_id
+	      }
 
-        @queued_for_write.each do |style, file|
-          raise FileExists, "file \"#{path(style)}\" already exists in your Google Drive" if exists?(path(style))
-
-          name, mime_type = filename_from(style), "#{ file.content_type }"
-
-          file_metadata = {
-            name: name,
-            description: 'shrine file on google drive',
-            mimeType: mime_type,
-            parents: [find_public_folder]
-          }
-
-          google_api_client.create_file(
-            file_metadata,
-            fields: 'id',
-            upload_source: file.binmode,
-            content_type: file.content_type,
-            )
-        end
-        after_upload
-        @queued_for_write = {}
+	      google_api_client.create_file(
+	        shrine_metadata,
+	        fields: 'id, name',
+	        upload_source: io.to_io,
+	        content_type: shrine_metadata["mime_type"]
+	        )
+	   	  message = "Uploaded file #{file.name} with Id: #{file.id}"
       end
 
       def google_api_client
@@ -83,178 +75,133 @@ class Shrine
 
       def url(id, **_options)
         # URL to the remote file, accepts options for customizing the URL
-        if present?
-          style = args.first.is_a?(Symbol) ? args.first : default_style
-          options = args.last.is_a?(Hash) ? args.last : {}
-          if style == :custom_thumb && is_valid_for_custom_thumb?
-            custom_width = options[:width] || 220
-            file_name = filename_from(default_style)
-            public_url_custom_thumbnail_from(file_name, custom_width)
-          else
-            file_name = filename_from(style)
-            public_url_for(file_name)
-          end
-        else
-          default_image
-        end
+        client = google_api_client
+        metadata = client.get_file(
+                    id,
+                    fields: 'webViewLink'
+                    )
+        metadata.web_view_link
       end
 
-      def is_valid_for_custom_thumb?
-        content_type =~ /image/ || content_type =~ /pdf/
-      end
 
-      # def download(id)
-      #   tempfile = Tempfile.new(["googlestorage", File.extname(id)], binmode: true)
-      #   storage_api.get_object(@bucket, object_name(id), download_dest: tempfile)
-      #   tempfile.tap(&:open)
-      # end
+      def download(id)
+      	 client = google_api_client
+         tempfile = Tempfile.new(["googledrive", File.extname(id)], binmode: true)
+         client.get_file(
+         			id,  
+         			download_dest: tempfile)
+         tempfile.tap(&:open)
+       end
 
       def open(id)
         # returns the remote file as an IO-like object
-        if file_id.is_a? String
           client = google_api_client
-          metadata = client.get_file(
-                    file_id,
-                    fields: 'id, name, thumbnailLink, webContentLink, webViewLink, trashed'
+          io = client.get_file(
+                    id,
+                    download_dest: StringIO.new
                     )
-          validate_metadata(metadata)
-          metadata
-        end
+          io.rewind
+          io
       end
 
-      # Raises an error in case that the Google Drive API does not response
-      # with the minimum required information.
-      # @params [ Google::Apis::DriveV3::File ]
-      def validate_metadata(metadata)
-        raise 'the file id was not retrieved' if metadata.id.nil?
-        raise 'the file name was not retrieved' if metadata.name.nil?
-        raise 'the file web_content_link was not retrieved' if metadata.web_content_link.nil?
-        raise 'the file web_view_link was not retrieved' if metadata.web_view_link.nil?
-        raise 'the file trashed was not retrieved' if metadata.trashed.nil?
-      end
 
       def exists?(id)
         # checks if the file exists on the storage
-        return false if not present?
-        result_id = search_for_title(path(style))
-        if result_id.nil?
-          false
-        else
-          data = metadata_by_id(result_id)
-          !data.trashed # if trashed -> not exists
-        end
-      end
-
-      # Gets the file metadata if it exists
-      # in other case returns the defaul image
-      # @param title [ String ]
-      # @param block [ Proc ]
-      def metadata_or_default_img_from(title, &block)
-        searched_id = search_for_title(title) #return id if any or style
-        if searched_id.nil? # it finds some file
-          default_image
-        else
-          metadata = metadata_by_id(searched_id)
-          yield metadata
-        end
-      end
-
-      def default_image
-        if @google_drive_options[:default_url] #if default image is set
-          title = @google_drive_options[:default_url]
-          searched_id = search_for_title(title) # id
-          if searched_id.nil?
-            raise 'Default image not found, please double check its name'
+        client = google_api_client
+        client.get_file(id) do |_, err|
+          if err
+            if err.status_code == 404
+              false
+            else
+              raise err
+            end
           else
-            metadata = metadata_by_id(searched_id)
-            effective_url_from(metadata.web_content_link)
+            true
           end
-        else
-          'No picture' # ---- ?
-        end
-      end
-
-      def find_public_folder
-        if @google_drive_options[:public_folder_id].is_a? Proc
-          instance.instance_exec(&@google_drive_options[:public_folder_id])
-        else
-          @google_drive_options[:public_folder_id]
         end
       end
 
       def delete(id)
         # deletes the file from the storage
-        @queued_for_delete.each do |path|
-          Shrine.log("Delete: #{ path }")
-          file_id = search_for_title(path)
-          google_api_client.delete_file(file_id) unless file_id.nil?
-        end
-        @queued_for_delete = []
+        google_api_client.delete_file(id) unless id.nil?
+
+      rescue Google::Apis::ClientError => e
+        # The object does not exist, Shrine expects us to be ok
+        return true if e.status_code == 404
+
+        raise e
       end
 
-      def filename_from(style)
-        file_name = instance.instance_exec(style, &file_title)
-        style_suffix = (style != default_style ? "_#{style}" : "")
-        if original_extension.present? && file_name =~ /#{original_extension}$/
-          file_name.sub(original_extension, "#{style_suffix}#{original_extension}")
-        else
-          file_name + style_suffix + original_extension.to_s
-        end
-      end
-
-      alias_method :path, :filename_from
-
-      # Gets the public url for a passed filename
-      # @param title [ String ]
-      # @return [ String ] with url
-      def public_url_for(title)
-        metadata_or_default_img_from(title) do |metadata|
-          # effective_url_from(metadata.web_content_link)
-          if content_type =~ /image/
-            custom_thumbnail_image_for(metadata.thumbnail_link, 1000)
-          else
-            metadata.web_view_link
+      def multi_delete(ids)
+      	client = google_api_client
+        ids.each_slice(100) do |ids|
+          client.batch do |client|
+            ids.each do |id|
+              client.delete_object(id)
+            end
           end
         end
       end
 
-      # Gets the public url for a passed filename
-      # @param title [ String ]
-      # @param custom_width [ Integer ]
-      # @return [ String ] with url
-      def public_url_custom_thumbnail_from(title, custom_width)
-        metadata_or_default_img_from(title) do |metadata|
-          custom_thumbnail_image_for(metadata.thumbnail_link, custom_width)
-        end
+      def create_folder(name)
+      	client = google_api_client
+      	file_metadata = {
+      		name: name,
+      		mime_type: 'application/vnd.google-apps.folder'
+      	}
+      	file = client.create_file(file_metadata, fields: 'id, name')
+      	message = "Created folder #{file.name} with folder id: #{file.id}"
       end
 
-      # Retrieves the specific image with a custom size. It is resized by GDrive API if you
-      # pass the :custom_thumb as style option. In other cases, it removes the last parameter
-      # `=s220` which is inchaged to do the scaling process.
-      # @param drive_thumbnail_link [ String ] with the form: https://<url value>=s220
-      # @param custom_width [ Integer ] ex. 512
-      # @return [ String ]
-      def custom_thumbnail_image_for(drive_thumbnail_link, custom_width)
-        file_url, current_width = drive_thumbnail_link.split(/=s/)
-        "#{ file_url }=s#{ custom_width }"
+      def find_folder_id(name)
+      	client = google_api_client
+      	page_token = nil
+      	begin
+      	  response = client.list_files(q: "mimeType = 'application/vnd.google-apps.folder' and name contains '#{ name }'",
+      	                                      spaces: 'drive',
+      	                                      fields:'nextPageToken, files(id, name)',
+      	                                      page_token: page_token)
+      	  for file in response.files
+      	    # Process change
+      	    message = "Found folder: #{file.name} ID: #{file.id}"
+      	  end
+      	  page_token = response.next_page_token
+      	end while !page_token.nil?
+      end 
+
+      def insert_in_folder(file_id, folder_id)
+      	client = google_api_client
+      	file = client.update_file(file_id,
+      							  add_parents: folder_id,
+      							  fields: 'id, name, parents')
+      	message = "File #{file.name} with ID #{file.id} inserted into folder #{file.parents}"
       end
 
-      # TOO SLOW and PERMISSIONS ISSUES
-      # Seems that the retrieved file url is only visible for the
-      # user which is owner and is currently log in GDrive.
-      #
-      # Gets the effective url from the web content link
-      # These are a series of steps to hack the way that GDrive API
-      # handle its urls. It consists in catch a Google::Apis::RedirectError error
-      # and take the correct url where is located the file.
-      # @param driver_web_content_link [ String ]
-      # @return [ String ]
-      def effective_url_from(drive_web_content_link)
-        redirect_url = drive_web_content_link.split(/&export=/)[0]
-        google_drive.http(:get, redirect_url) do |result, err|
-          err.header[:location].split('&continue=')[1]
-        end
+      def move_file(file_id, new_folder_id)
+      	client = google_api_client
+      	# Retrieve the existing parents to remove
+      	file = client.get_file(file_id,
+      	                       fields: 'parents')
+      	previous_parents = file.parents.join(',')
+      	# Move the file to the new folder
+      	file = client.update_file(file_id,
+      	                          add_parents: new_folder_id,
+      	                          remove_parents: previous_parents,
+      	                          fields: 'id, name, parents')
+      	message = "File #{file.name} with ID #{file.id} moved to folder #{file.parents}"
       end
+
+      def file_name(file_id)
+        client = google_api_client
+        metadata = client.get_file(
+                    file_id,
+                    fields: 'id, name'
+                    )
+        metadata.name
+      end
+
+      alias_method :object_name
+
 
       # Takes the file title/name and search it in a given folder
       # If it finds a file, return id of a file or nil
@@ -264,7 +211,7 @@ class Shrine
         raise 'You are trying to search a file with NO name' if name.nil? || name.empty?
         client = google_api_client
         result = client.list_files(page_size: 1,
-                q: "name contains '#{ name }' and '#{ find_public_folder }' in parents",
+                q: "name contains '#{ name }'",
                 fields: 'files(id, name)'
                 )
         if result.files.length > 0
@@ -272,25 +219,6 @@ class Shrine
         else
           nil
         end
-      end
-
-       #
-      # Error classes
-      #
-
-      class FileExists < ArgumentError
-      end
-
-      private
-
-      def file_title
-        return @google_drive_options[:path] if @google_drive_options[:path] #path: proc
-        eval %(proc { |style| "\#{id}_\#{#{name}.original_filename}"})
-      end
-
-      # @return [String] with the extension of file
-      def original_extension
-        File.extname(original_filename)
       end
 
     end
