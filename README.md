@@ -49,9 +49,9 @@ Shrine.storages = {
 Shrine::Storage::GoogleDriveStorage.new(
   prefix: "store",
   google_drive_client_secret_path: "#{Rails.root}/config/client_secret.json",
+  drive_public_folder_id: 'AAAARRRRGGGBBBFFFFadsasdX',
   google_drive_options: {
        	path: proc { |style| "#{id}_#{photo.original_filename}_#{style}" },
-        public_folder_id: 'AAAARRRRGGGBBBFFFFadsasdX'
       },
 )
 ```
@@ -59,6 +59,10 @@ Shrine::Storage::GoogleDriveStorage.new(
 The `:google_drive_client_secret_path` option
 
 This is the path of the file downloaded from your Google Drive app settings by the authorization Rake task.
+
+The `:drive_public_folder_id` option
+
+This is the id of Google Drive folder that must be created in google drive and set public permissions on it
 
 Example of the overridden `path/to/client_secret.json` file:
 ```json
@@ -77,9 +81,7 @@ The `:google_drive_options` option
 
 This is a hash containing any of the following options:
  - `:path` – block
- - `:public_folder_id`- id of folder that must be created in google drive and set public permissions on it
  - `:default_image` - an image in Public folder that used for attachments if attachment is not present
- - `:application_name` - is the name that you set for the application credentials on Google console.
 
 The :path option should be a block which returns a path that the uploaded file should be saved to. The block yields the attachment style and is executed in the scope of the model instance.
 

@@ -12,8 +12,9 @@ class Shrine
       
       def initialize(prefix: nil, google_drive_options: {})
         @prefix = prefix
-        @google_drive_client_secret_path = @options[:google_drive_client_secret_path]
-        @google_drive_options = @options[:google_drive_options]
+        @google_drive_client_secret_path = google_drive_client_secret_path
+        @drive_public_folder_id = drive_public_folder_id
+        @google_drive_options = google_drive_options
       end
 
       def upload(io, id, shrine_metadata: {}, **_options)
@@ -22,7 +23,7 @@ class Shrine
 	        name: id,
 	        description: 'shrine file on google drive',
 	        mimeType: mime_type,
-	        parents: folder_id
+	        parents: @drive_public_folder_id
 	      }
 
 	      google_api_client.create_file(
