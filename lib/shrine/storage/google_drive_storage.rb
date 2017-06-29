@@ -1,13 +1,7 @@
-require 'active_support/core_ext/hash/keys'
-require 'active_support/inflector/methods'
-require 'active_support/core_ext/object/blank'
-require 'yaml'
-require 'erb'
-
 require 'shrine'
 require 'google/apis/drive_v3'
 require 'googleauth'
-require 'shrine/google_drive/session'
+require 'googleauth/stores/file_token_store'
 
 require 'fileutils'
 
@@ -15,28 +9,7 @@ class Shrine
   module Storage
     class GoogleDriveStorage
       attr_reader :prefix
-
-	  	def extended(base)
-	      check_gem_is_installed
-	      base.instance_eval do
-	        @google_drive_client_secret_path = @options[:google_drive_client_secret_path]
-	        @google_drive_options = @options[:google_drive_options] || { application_name: 'test-app' }
-	        raise(ArgumentError, 'You must provide a valid google_drive_client_secret_path option') unless @google_drive_client_secret_path
-	        raise(ArgumentError, 'You must set the public_folder_id option') unless @google_drive_options[:public_folder_id]
-	        google_api_client # Force validations of credentials
-	      end
-	    end
-
-	    def check_gem_is_installed
-	      begin
-	        require 'google-api-client'
-	      rescue LoadError => e
-	        e.message << '(You may need to install the google-api-client gem)'
-	        raise e
-	      end unless defined?(Google)
-	    end
       
-
       def initialize(prefix: nil, google_drive_options: {})
         @prefix = prefix
         @google_drive_client_secret_path = @options[:google_drive_client_secret_path]
@@ -62,13 +35,13 @@ class Shrine
       end
 
       def google_api_client
-        @google_api_client ||= begin
-          # Initialize the client & Google+ API
-          ::Shrine::GoogleDrive::Session.from_config(
-            @google_drive_client_secret_path,
-            application_name: @google_drive_options[:application_name]
-          )
+        if !@google_api_client || @google_api_client.authorization.expired?
+          service = Google::Apis::DriveV3::DriveService.new
+          service.client_options.application_name = ENV['APPLICATION_NAME']
+          service.authorization = authorize
+          @google_api_client = service
         end
+        @google_api_client
       end
 
       alias_method :google_drive, :google_api_client
@@ -137,7 +110,7 @@ class Shrine
         ids.each_slice(100) do |ids|
           client.batch do |client|
             ids.each do |id|
-              client.delete_object(id)
+              client.delete_file(id)
             end
           end
         end
@@ -207,7 +180,7 @@ class Shrine
       # If it finds a file, return id of a file or nil
       # @param name [ String ]
       # @return [ String ] or NilClass
-      def search_for_title(name)
+      def search_for_file(name)
         raise 'You are trying to search a file with NO name' if name.nil? || name.empty?
         client = google_api_client
         result = client.list_files(page_size: 1,
@@ -220,6 +193,40 @@ class Shrine
           nil
         end
       end
+
+      private
+
+      # Ensure valid credentials, either by restoring from the saved credentials
+      # files or intitiating an OAuth2 authorization. If authorization is required,
+      # the user's default browser will be launched to approve the request.
+      #
+      # @return [Google::Auth::UserRefreshCredentials] OAuth2 credentials
+      def authorize
+        scope = Google::Apis::DriveV3::AUTH_DRIVE
+        client_secrets_path = @google_drive_client_secret_path
+        credentials_path = ENV['CREDENTIALS_PATH']
+        FileUtils.mkdir_p(File.dirname(credentials_path))
+
+        client_id = Google::Auth::ClientId.from_file(client_secrets_path)
+        token_store = Google::Auth::Stores::FileTokenStore.new(file: credentials_path)
+        authorizer = Google::Auth::UserAuthorizer.new(
+          client_id, scope, token_store)
+        user_id = 'default'
+        oob_uri = 'urn:ietf:wg:oauth:2.0:oob'
+        credentials = authorizer.get_credentials(user_id)
+        if credentials.nil?
+          url = authorizer.get_authorization_url(
+            base_url: oob_uri)
+          $stderr.print("\n1. Open this page:\n%s\n\n" % url)
+          $stderr.print('2. Enter the authorization code shown in the page: ')
+          code = $stdin.gets.chomp
+          credentials = authorizer.get_and_store_credentials_from_code(
+            user_id: user_id, code: code, base_url: oob_uri, scope: scope)
+        end
+        credentials
+      end
+
+
 
     end
   end

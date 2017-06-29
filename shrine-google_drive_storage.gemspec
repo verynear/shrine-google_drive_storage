@@ -1,11 +1,6 @@
-# coding: utf-8
-lib = File.expand_path("../lib", __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "shrine/version"
-
 Gem::Specification.new do |spec|
   spec.name          = "shrine-google_drive_storage"
-  spec.version       = Shrine::GoogleDriveStorage::VERSION
+  spec.version       = "0.3.1"
   spec.authors       = ["Scott Near"]
   spec.email         = ["scott.a.near@gmail.com"]
 
@@ -23,21 +18,15 @@ Gem::Specification.new do |spec|
   #     "public gem pushes."
   # end
 
-  spec.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
 
-  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(test|spec|features)/})
-  end
+  spec.files         = Dir["README.md", "LICENSE.txt", "lib/**/*.rb", "shrine-google_cloud_storage.gemspec"]
   
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'shrine', '~> 2.6', '>= 2.6.1'
   spec.add_dependency 'google-api-client', '~> 0.13.0'
 
-  spec.add_development_dependency "bundler", "~> 1.15"
-  spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency "rspec"
+  spec.add_development_dependency "rake"
+  spec.add_development_dependency "minitest"
   spec.add_development_dependency "dotenv"
-  spec.add_development_dependency "activerecord", "~> 4.2", ">= 4.2.0"
-  spec.add_development_dependency "railties", "~> 4.2", ">= 4.2.0"
 end

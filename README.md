@@ -30,17 +30,7 @@ Google Drive is a free service for file storage files. In order to use this stor
 
 4. Now you will have a Client ID, Client Secret, and Redirect URL. So, download the client_secret_XXXXX.json file and rename it to client_secret.json.
 
-5. Run the authorization task:
-    ```sh
-    $ rake google_drive:authorize"[path/to/client_secret.json, 'application_name']"
-    ```
-    NOTE:
-     - the `path/to/client_secret.json` path is the file downloaded from Google console (it will be overrided with the fresh token).
-     - the `application_name` param is the name that you set for the application credentials on Google console.
-
-6. The Rake task will give you an auth url. Simply go to that url (while signed in as the designated uploads owner), authorize the app, then enter code from url in the console. The rake task will override valid `client_secret.json` which you can use to connect with GoogleDrive from now on.
-
-7. Create a folder in which the files will be uploaded; note the folder's ID.
+5. Create a google drive folder in which the files will be uploaded; note the folder's ID.
 
 ## Usage
 
@@ -79,7 +69,7 @@ Example of the overridden `path/to/client_secret.json` file:
   "refresh_token": "1/_sVZIgY5thPetbWDTTTasdDID5Rkvq6UEfYshaDs5dIKoUAKgjE9f"
 }
 ```
-It is good practice to not include the credentials directly in the JSON file. Instead you can set them in environment variables and embed them with ERB.
+It is good practice to not include the credentials directly in the JSON file. Instead you can set them in environment variables and embed them with ERB. Alternatively, add the .json extention to your .gitignore file.
 
 ## Options
 
@@ -92,6 +82,19 @@ This is a hash containing any of the following options:
  - `:application_name` - is the name that you set for the application credentials on Google console.
 
 The :path option should be a block which returns a path that the uploaded file should be saved to. The block yields the attachment style and is executed in the scope of the model instance.
+
+## .env file
+Create an `.env` file with these values:
+
+```sh
+# .env
+APPLICATION_NAME = "..."
+CREDENTIALS_PATH = File.join(Dir.home, '.credentials',
+                             "application-name.yaml")
+```
+
+The application name in the above cases is the project name you chose in the [Google Developers console](https://console.developers.google.com/project)
+
 
 ## Contributing
 
