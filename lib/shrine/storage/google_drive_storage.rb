@@ -10,7 +10,7 @@ class Shrine
     class GoogleDriveStorage
       attr_reader :prefix
       
-      def initialize(prefix: nil, google_drive_options: {})
+      def initialize(prefix: nil, google_drive_client_secret_path: "#{Rails.root}/config/client_secret.json", drive_public_folder_id: nil, google_drive_options: {})
         @prefix = prefix
         @google_drive_client_secret_path = google_drive_client_secret_path
         @drive_public_folder_id = drive_public_folder_id
