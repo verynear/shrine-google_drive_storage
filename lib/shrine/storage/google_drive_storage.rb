@@ -173,7 +173,7 @@ class Shrine
         metadata.name
       end
 
-      alias_method :object_name
+      alias_method :object_name, :file_name
 
 
       # Takes the file title/name and search it in a given folder
