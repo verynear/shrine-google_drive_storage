@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "shrine-google_drive_storage"
-  spec.version       = "0.3.3"
+  spec.version       = "0.3.4"
   spec.authors       = ["Scott Near"]
   spec.email         = ["scott.a.near@gmail.com"]
 
@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   
   spec.require_paths = "lib"
 
-  spec.add_dependency 'shrine', '~> 2.2'
+  spec.add_dependency 'shrine', '~> 2.6'
   spec.add_dependency 'google-api-client', '~> 0.13.0'
 
   spec.add_development_dependency "rake"
