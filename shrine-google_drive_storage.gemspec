@@ -21,9 +21,9 @@ Gem::Specification.new do |spec|
 
   spec.files         = Dir["README.md", "LICENSE.txt", "lib/**/*.rb", "shrine-google_cloud_storage.gemspec"]
   
-  spec.require_paths = ["lib"]
+  spec.require_paths = "lib"
 
-  spec.add_dependency 'shrine', '~> 2.6', '>= 2.6.1'
+  spec.add_dependency 'shrine', '~> 2.2'
   spec.add_dependency 'google-api-client', '~> 0.13.0'
 
   spec.add_development_dependency "rake"

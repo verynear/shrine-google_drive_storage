@@ -10,13 +10,13 @@ describe Shrine::Storage::GoogleDriveStorage do
         public_folder_id: '0B-GFJI5FWVGyQXFKRzkydldoalk'
       }
 
-    Shrine::Storage::GoogleDriveStorage.new(options)
+    Google::Apis::DriveV3::DriveService.new(options)
   end
 
 
   before do
     @google_drive_storage = google_drive_storage
-    shrine = Class.new(Shrine)
+    # shrine = Class.new(Shrine)
     shrine.storages = { google_drive_storage: @google_drive_storage }
     @uploader = shrine.new(:google_drive_storage)
   end
