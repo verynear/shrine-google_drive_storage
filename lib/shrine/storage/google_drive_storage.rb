@@ -22,7 +22,7 @@ class Shrine
 	      shrine_metadata = {
 	        name: id,
 	        description: 'shrine file on google drive',
-	        mime_type: mime_type,
+	        mime_type: content_type,
 	        parents: @drive_public_folder_id
 	      }
 
