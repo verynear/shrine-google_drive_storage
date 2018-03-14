@@ -19,7 +19,7 @@ class Shrine
 
       def upload(io, id, shrine_metadata: {}, **_options)
         shrine_metadata = {
-          name: "#{io.metadata['record_name']} #{id}",
+          name: io.metadata['filename'],
           description: id,
           mime_type: io.metadata['mime_type'],
           parents: [@drive_public_folder_id]
