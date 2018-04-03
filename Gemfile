@@ -1,4 +1,8 @@
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in shrine-google_drive_storage.gemspec
+#rvm stuff
+#ruby=ruby-2.5.0
+#ruby-gemset=shrine
+
+# Specify your gem's dependencies in shrine-gdrive_storage.gemspec
 gemspec

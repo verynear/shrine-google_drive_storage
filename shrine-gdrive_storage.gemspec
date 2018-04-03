@@ -1,12 +1,12 @@
 Gem::Specification.new do |spec|
-  spec.name          = "shrine-google_drive_storage"
-  spec.version       = "0.4.4"
-  spec.authors       = ["Scott Near"]
-  spec.email         = ["scott.a.near@gmail.com"]
+  spec.name          = "shrine-gdrive_storage"
+  spec.version       = "0.1"
+  spec.authors       = ["edwardsharp"]
+  spec.email         = ["edward@edwardsharp.net"]
 
   spec.summary       = "Provides Google Drive Storage for Shrine."
-  spec.description   = "Provides Google Drive Storage for Shrine."
-  spec.homepage      = "https://github.com/verynear/shrine-google_drive_storage"
+  spec.description   = "Provides Google Drive Storage for Shrine. Fork & improvemnet on Scott Near's version (https://github.com/verynear/shrine-google_drive_storage)."
+  spec.homepage      = "https://github.com/edwardsharp/shrine-gdrive_storage"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   # end
 
 
-  spec.files         = Dir["README.md", "LICENSE.txt", "lib/**/*.rb", "shrine-google_cloud_storage.gemspec"]
+  spec.files         = Dir["README.md", "LICENSE.txt", "lib/**/*.rb", "shrine-gdrive_storage.gemspec"]
   
   spec.require_paths = "lib"
 
