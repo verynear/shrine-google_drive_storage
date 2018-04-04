@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "shrine-gdrive_storage"
-  spec.version       = "0.1"
+  spec.version       = "0.5.0"
   spec.authors       = ["edwardsharp"]
   spec.email         = ["edward@edwardsharp.net"]
 

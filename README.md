@@ -6,6 +6,9 @@ shout-outz to:
 https://github.com/verynear/shrine-google_drive_storage &&  
 https://github.com/renchap/shrine-google_cloud_storage
 
+_note:_
+This gem uses a Google API "Service Account" to upload files to Google Drive (or a particular Drive folder). You might want to dig into [shrine-google_drive_storage](https://github.com/verynear/shrine-google_drive_storage) if you want to upload to your user's various Google Drives via oAuth. 
+
 ## Installation
 
 Add this line to your application's Gemfile:
