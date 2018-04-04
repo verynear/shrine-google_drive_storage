@@ -2,12 +2,16 @@
 
 Provides [Google Drive Storage] for [Shrine].
 
+shout-outz to:  
+https://github.com/verynear/shrine-google_drive_storage &&  
+https://github.com/renchap/shrine-google_cloud_storage
+
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'shrine-google_drive_storage'
+gem 'shrine-gdrive_storage'
 ```
 
 And then execute:
@@ -16,99 +20,98 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install shrine-google_drive_storage
+    $ gem install shrine-gdrive_storage
 
 ## Google Drive Setup
 
-Google Drive is a free service for file storage files. In order to use this storage you need a Google (or Google Apps) user which will own the files, and a Google API client.
+In order to use this storage you need a Google (or Google Apps) user which will own the files, and a Google API `client_secrets.json` file.
 
 1. Go to the [Google Developers console](https://console.developers.google.com/project) and create a new project, this option is on the top, next to the Google APIs logo.
 
-2. Go to "API Manager > Library" in the section "Google Apps APIs" and enable "Drive API". If you are getting an "Access Not Configured" error while uploading files, this is due to this API not being enabled.
+2. Go to "API Manager > Library" in the section "Google Apps APIs" and enable "Drive API". 
 
-3. Go to "API Manager > Credentials" and click on "OAuth Client ID" before to select "Other" type you must specify `http://localhost` for application home page.
+3. Go to "API Manager > Credentials" and create a new "Service Account Key".
 
-4. Now you will have a Client ID, Client Secret, and Redirect URL. So, download the client_secret_XXXXX.json file and rename it to client_secret.json.
+4. Download the client_secret_XXXXX.json file and rename it to client_secret.json.
 
-5. Create a google drive folder in which the files will be uploaded; note the folder's ID.
+5. Create a google drive folder in which the files will be uploaded. 
 
-## Usage
+_note:_ find the `drive_public_folder_id` by browsing to the folder via web at https://drive.google.com and get the id from the url, like such: `https://drive.google.com/drive/u/0/folders/AAAARRRRGGGBBBFFFFadsasdX`
 
-```rb
-require "shrine/storage/google_drive_storage"
+## Environment variables
 
-Shrine.storages = {
-  cache: Shrine::Storage::GoogleDriveStorage.new(prefix: "cache"),
-  store: Shrine::Storage::GoogleDriveStorage.new(prefix: "store"),
-}
-```
+ (`cache: Shrine::Storage::GoogleDriveStorage.new(drive_public_folder_id: 'AAAARRRRGGGBBBFFFFadsasdX')`)  
 
-## Configuration
+use the [dotenv](https://rubygems.org/gems/dotenv) gem and add `require 'dotenv/load` to easily load values from your .env file  
 
-```rb
-Shrine::Storage::GoogleDriveStorage.new(
-  prefix: "store",
-  google_drive_client_secret_path: "#{Rails.root}/config/client_secret.json",
-  drive_public_folder_id: 'AAAARRRRGGGBBBFFFFadsasdX',
-  google_drive_options: {
-       	path: proc { |style| "#{id}_#{photo.original_filename}_#{style}" },
-      },
-)
-```
-
-The `:google_drive_client_secret_path` option
-
-This is the path of the file downloaded from your Google Drive app settings by the authorization Rake task.
-
-The `:drive_public_folder_id` option
-
-This is the id of Google Drive folder that must be created in google drive and set public permissions on it
-
-Example of the overridden `path/to/client_secret.json` file:
-```json
-{
-  "client_id": "4444-1111.apps.googleusercontent.com",
-  "client_secret": "1yErh1pR_7asdf8tqdYM2LcuL",
-  "scope": "https://www.googleapis.com/auth/drive",
-  "refresh_token": "1/_sVZIgY5thPetbWDTTTasdDID5Rkvq6UEfYshaDs5dIKoUAKgjE9f"
-}
-```
-It is good practice to not include the credentials directly in the JSON file. Instead you can set them in environment variables and embed them with ERB. Alternatively, add the .json extention to your .gitignore file.
-
-## Options
-
-The `:google_drive_options` option
-
-This is a hash containing any of the following options:
- - `:path` – block
- - `:default_image` - an image in Public folder that used for attachments if attachment is not present
-
-The :path option should be a block which returns a path that the uploaded file should be saved to. The block yields the attachment style and is executed in the scope of the model instance.
-
-## .env file
 Create an `.env` file with these values:
 
 ```sh
 # .env
-APPLICATION_NAME = "..."
-CREDENTIALS_PATH = File.join(Dir.home, '.credentials',
-                             "application-name.yaml")
+APPLICATION_NAME = "yourapp-12345"
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/client_secret.json
+GOOGLE_PUBLIC_FOLDER_ID=AAAARRRRGGGBBBFFFFadsasdX
 ```
+
+__-or-__ set the environment variables however you like.
 
 The application name in the above cases is the project name you chose in the [Google Developers console](https://console.developers.google.com/project)
 
 
+## Usage
+
+```rb
+require "dotenv/load" #optional, load environment variables from .env file
+require "shrine/storage/google_drive_storage"
+
+Shrine.storages = {
+  store: Shrine::Storage::GoogleDriveStorage.new,
+}
+```
+
+you can use this for cache storage, too.
+
+## Configuration
+
+set the `drive_public_folder_id` here (instead of via environment variable) if you'd like
+
+```rb
+Shrine::Storage::GoogleDriveStorage.new(
+  drive_public_folder_id: 'AAAARRRRGGGBBBFFFFadsasdX',
+)
+```
+
+## Helpful info
+
+If you are getting an "Access Not Configured" error while uploading files, this is due to this API not being enabled or, perhaps, your drive folder not having the correct permissions. 
+
+Try sharing your folder (`drive_public_folder_id`) with the google service account user (see https:// or client_secret.json) something like: yourapp@yourapp-12345.iam.gserviceaccount.com. You might want to make your folder public.
+
+or maybe use "Enable G Suite Domain-wide Delegation" via https://console.developers.google.com/iam-admin/serviceaccounts/project?project=yourapp-12345
+
+
+## Miscellaneous
+
+rtfm: http://www.rubydoc.info/github/google/google-api-ruby-client/Google/Apis/DriveV3
+
+## Testing
+
+a quick way to make sure your client_secret.json is working: 
+
+    $ ruby test/gdrive_quickstart.rb
+
+and then run this against the nifty shrinerb linters:
+
+    $ rake test
+
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/verynear/shrine-google_drive_storage. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/edwardsharp/shrine-gdrive_storage. 
 
 ## License
 
 [MIT License](http://opensource.org/licenses/MIT).
 
-## Code of Conduct
-
-Everyone interacting in the Shrine::GoogleDriveStorage project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/verynear/shrine-google_drive_storage/blob/master/CODE_OF_CONDUCT.md).
 
 [Google Drive Storage]: https://drive.google.com/drive/
 [Shrine]: https://github.com/janko-m/shrine

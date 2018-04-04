@@ -23,10 +23,11 @@ Gem::Specification.new do |spec|
   
   spec.require_paths = "lib"
 
-  spec.add_dependency 'shrine', '~> 2.6'
-  spec.add_dependency 'google-api-client', '~> 0.13.0'
-
-  spec.add_development_dependency "rake"
-  spec.add_development_dependency "minitest"
-  spec.add_development_dependency "dotenv"
+  spec.add_dependency 'shrine', '~> 2.1'
+  spec.add_dependency 'googleauth', '~> 0.5'
+  spec.add_dependency 'google-api-client', '~> 0.20.0'
+  spec.add_development_dependency 'httparty', '~> 0.16'
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'minitest'
+  spec.add_development_dependency 'dotenv'
 end

@@ -1,14 +1,10 @@
 require "bundler/setup"
-
+require "dotenv/load"
 require "shrine/storage/google_drive_storage"
-
-require "dotenv"
-
 require "forwardable"
 require "stringio"
 require "minitest/autorun"
 
-Dotenv.load!
 
 class FakeIO
   def initialize(content)
