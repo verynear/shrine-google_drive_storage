@@ -1,10 +1,11 @@
 /.bundle/
 /.yardoc
 /_yardoc/
-.env
 /coverage/
 /doc/
 /pkg/
 /spec/reports/
 /tmp/
 .config
+client_secret.json
+gclient_secret.json
