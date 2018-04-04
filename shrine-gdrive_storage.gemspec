@@ -3,7 +3,7 @@ Gem::Specification.new do |spec|
   spec.version       = "0.5.0"
   spec.authors       = ["edwardsharp"]
   spec.email         = ["edward@edwardsharp.net"]
-
+  spec.date          = '2018-04-04'
   spec.summary       = "Provides Google Drive Storage for Shrine."
   spec.description   = "Provides Google Drive Storage for Shrine. Fork & improvemnet on Scott Near's version (https://github.com/verynear/shrine-google_drive_storage)."
   spec.homepage      = "https://github.com/edwardsharp/shrine-gdrive_storage"
